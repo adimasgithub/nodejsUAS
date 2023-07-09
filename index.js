@@ -5,18 +5,19 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const multer = require('multer')
 const path = require('path')
+var cors = require('cors');
 
 // set body parser
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-
+app.use(cors({ origin:'*'}));
 // script upload
 
 app.use(express.static("./public"))
  //! Use of Multer
 var storage = multer.diskStorage({
     destination: (req, file, callBack) => {
-        callBack(null, './public/images/')     // './public/images/' directory name where save the file
+        callBack(null, './public/images/')     // './public/images/ name where save the file
     },
     filename: (req, file, callBack) => {
         callBack(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
@@ -29,21 +30,21 @@ var upload = multer({
 
 
 // create data / insert data
-app.post('/api/mahasiswa',upload.single('image'),(req, res) => {
+app.post('/api/pegawai',upload.single('image'),(req, res) => {
 
 
     const data = { ...req.body };
-     const nim = req.body.nim;
+     const nip = req.body.nip;
     const nama = req.body.nama;
     const tanggal_lahir = req.body.tanggal_lahir;
     const alamat = req.body.alamat;
 
     if (!req.file) {
         console.log("No file upload");
-        const querySql = 'INSERT INTO mahasiswa (nim,nama,tanggal_lahir,alamat) values (?,?,?,?);';
+        const querySql = 'INSERT INTO pegawai (nip,nama,tanggal_lahir,alamat) values (?,?,?,?);';
          
         // jalankan query
-        koneksi.query(querySql,[nim,nama,tanggal_lahir,alamat], (err, rows, field) => {
+        koneksi.query(querySql,[nip,nama,tanggal_lahir,alamat], (err, rows, field) => {
             // error handling
             if (err) {
                 return res.status(500).json({ message: 'Gagal insert data!', error: err });
@@ -58,10 +59,10 @@ app.post('/api/mahasiswa',upload.single('image'),(req, res) => {
         const foto =   imgsrc;
     // buat variabel penampung data dan query sql
     const data = { ...req.body };
-    const querySql = 'INSERT INTO mahasiswa (nim,nama,tanggal_lahir,alamat,foto) values (?,?,?,?,?);';
+    const querySql = 'INSERT INTO pegawai (nip,nama,tanggal_lahir,alamat,foto) values (?,?,?,?,?);';
  
 // jalankan query
-koneksi.query(querySql,[ nim,nama, tanggal_lahir,alamat,foto], (err, rows, field) => {
+koneksi.query(querySql,[ nip,nama, tanggal_lahir,alamat,foto], (err, rows, field) => {
     // error handling
     if (err) {
         return res.status(500).json({ message: 'Gagal insert data!', error: err });
@@ -74,9 +75,9 @@ koneksi.query(querySql,[ nim,nama, tanggal_lahir,alamat,foto], (err, rows, field
 });
 
 // read data / get data
-app.get('/api/mahasiswa', (req, res) => {
+app.get('/api/pegawai', (req, res) => {
     // buat query sql
-    const querySql = 'SELECT * FROM mahasiswa';
+    const querySql = 'SELECT * FROM pegawai';
 
     // jalankan query
     koneksi.query(querySql, (err, rows, field) => {
@@ -93,19 +94,19 @@ app.get('/api/mahasiswa', (req, res) => {
 
 
 // update data
-app.put('/api/mahasiswa/:nim', (req, res) => {
+app.put('/api/pegawai/:nip', (req, res) => {
     // buat variabel penampung data dan query sql
     const data = { ...req.body };
-    const querySearch = 'SELECT * FROM mahasiswa WHERE nim = ?';
-     const nim = req.body.nim;
+    const querySearch = 'SELECT * FROM pegawai WHERE nip = ?';
+     const nip = req.body.nip;
     const nama = req.body.nama;
     const tanggal_lahir = req.body.tanggal_lahir;
     const alamat = req.body.alamat;
 
-    const queryUpdate = 'UPDATE mahasiswa SET nama=?,tanggal_lahir=?,alamat=? WHERE nim = ?';
+    const queryUpdate = 'UPDATE pegawai SET nama=?,tanggal_lahir=?,alamat=? WHERE nip = ?';
 
     // jalankan query untuk melakukan pencarian data
-    koneksi.query(querySearch, req.params.nim, (err, rows, field) => {
+    koneksi.query(querySearch, req.params.nip, (err, rows, field) => {
         // error handling
         if (err) {
             return res.status(500).json({ message: 'Ada kesalahan', error: err });
@@ -115,7 +116,7 @@ app.put('/api/mahasiswa/:nim', (req, res) => {
         if (rows.length) {
             // jalankan query update
           
-            koneksi.query(queryUpdate, [nama,tanggal_lahir,alamat, req.params.nim], (err, rows, field) => {
+            koneksi.query(queryUpdate, [nama,tanggal_lahir,alamat, req.params.nip], (err, rows, field) => {
                 
                 // error handling
                 if (err) {
@@ -136,13 +137,13 @@ app.put('/api/mahasiswa/:nim', (req, res) => {
 
 
 // delete data
-app.delete('/api/mahasiswa/:nim', (req, res) => {
+app.delete('/api/pegawai/:nip', (req, res) => {
     // buat query sql untuk mencari data dan hapus
-    const querySearch = 'SELECT * FROM mahasiswa WHERE nim = ?';
-    const queryDelete = 'DELETE FROM mahasiswa WHERE nim = ?';
+    const querySearch = 'SELECT * FROM pegawai WHERE nip = ?';
+    const queryDelete = 'DELETE FROM pegawai WHERE nip = ?';
 
     // jalankan query untuk melakukan pencarian data
-    koneksi.query(querySearch, req.params.nim, (err, rows, field) => {
+    koneksi.query(querySearch, req.params.nip, (err, rows, field) => {
         // error handling
         if (err) {
             return res.status(500).json({ message: 'Ada kesalahan', error: err });
@@ -151,7 +152,7 @@ app.delete('/api/mahasiswa/:nim', (req, res) => {
         // jika id yang dimasukkan sesuai dengan data yang ada di db
         if (rows.length) {
             // jalankan query delete
-            koneksi.query(queryDelete, req.params.nim, (err, rows, field) => {
+            koneksi.query(queryDelete, req.params.nip, (err, rows, field) => {
                 // error handling
                 if (err) {
                     return res.status(500).json({ message: 'Ada kesalahan', error: err });
